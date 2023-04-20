@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace DevHvmnd\MemoryInfo;
+
 class MemoryInfo
 {
     public function __construct(
