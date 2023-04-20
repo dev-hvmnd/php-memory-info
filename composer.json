@@ -1,6 +1,6 @@
 {
   "name": "dev-hvmnd/memory-info",
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "description": "PHP library for reading the current memory status on Linux systems",
   "type": "library",
   "version": "1.0.0",
@@ -8,6 +8,11 @@
   "autoload": {
     "psr-4": {
       "DevHvmnd\\MemoryInfo\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "DevHvmnd\\MemoryInfo\\Tests\\": "tests/"
     }
   },
   "authors": [
@@ -18,5 +23,8 @@
   ],
   "require": {
     "php": ">=8.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "10.1.1"
   }
 }
