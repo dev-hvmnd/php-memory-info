@@ -1,0 +1,22 @@
+{
+  "name": "dev-hvmnd/memory-info",
+  "minimum-stability": "dev",
+  "description": "PHP library for reading the current memory status on Linux systems",
+  "type": "library",
+  "version": "1.0.0",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "DevHvmnd\\MemoryInfo\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Norman Kante",
+      "email": "norman@dev-hvmnd.io"
+    }
+  ],
+  "require": {
+    "php": ">=8.0"
+  }
+}
