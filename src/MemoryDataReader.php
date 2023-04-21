@@ -6,22 +6,17 @@ namespace DevHvmnd\MemoryInfo;
 
 class MemoryDataReader
 {
-    public const PROC_MEMINFO_FILE = '/proc/meminfo';
+    public const PROC_MEMORY_INFO_FILE = '/proc/meminfo';
+
+    public function __construct(private MemoryInfoParser $memoryInfoParser)
+    {
+    }
 
     public function getMemoryInfo(): MemoryInfo
     {
-        $memoryInformation = file(self::PROC_MEMINFO_FILE);
-        $memoryInformationData = [];
+        $memoryInformation = file_get_contents(self::PROC_MEMORY_INFO_FILE);
 
-        foreach ($memoryInformation as $line) {
-            [$key, $value] = explode(":", $line);
-
-            $key = trim($key);
-            $key = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
-            $value = (int)trim(string: preg_replace(pattern: '/^\D/', replacement: '', subject: $value)) * 1024;
-
-            $memoryInformationData[$key] = $value;
-        }
+        $memoryInformationData = $this->memoryInfoParser->parse($memoryInformation);
 
         extract($memoryInformationData, EXTR_OVERWRITE);
 
