@@ -9,65 +9,79 @@ use DevHvmnd\MemoryInfo\MemoryInfoReadException;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
-class MemoryInfoParserTest extends TestCase
+final class MemoryInfoParserTest extends TestCase
 {
     public function testParsesRealisticMemoryInformation(): void
     {
-        $parser = new MemoryInfoParser();
+        $memoryInfoParser = new MemoryInfoParser();
 
-        $memoryInfo = $parser->parse($this->memoryInformationFixture());
+        $memoryInfo = $memoryInfoParser->parse($this->memoryInformationFixture());
 
-        self::assertSame(16_384_256 * 1024, $memoryInfo->memTotal);
-        self::assertSame(111_111 * 1024, $memoryInfo->activeAnon);
-        self::assertSame(444_444 * 1024, $memoryInfo->inactiveFile);
-        self::assertSame(5 * 1024, $memoryInfo->nfsUnstable);
-        self::assertSame(9_999_999 * 1024, $memoryInfo->committedAS);
-        self::assertSame(0, $memoryInfo->vmallocChunk);
+        $this->assertSame(16_384_256 * 1024, $memoryInfo->memTotal);
+        $this->assertSame(111_111 * 1024, $memoryInfo->activeAnon);
+        $this->assertSame(444_444 * 1024, $memoryInfo->inactiveFile);
+        $this->assertSame(5 * 1024, $memoryInfo->nfsUnstable);
+        $this->assertSame(9_999_999 * 1024, $memoryInfo->committedAS);
+        $this->assertSame(0, $memoryInfo->vmallocChunk);
+    }
+
+    public function testParsesLinuxProcMemoryInformationFixture(): void
+    {
+        $memoryInfoParser = new MemoryInfoParser();
+
+        $memoryInfo = $memoryInfoParser->parse($this->linuxProcMemoryInformationFixture());
+
+        $this->assertSame(32_776_548 * 1024, $memoryInfo->memTotal);
+        $this->assertSame(24_567_890 * 1024, $memoryInfo->memAvailable);
+        $this->assertSame(2_734_568 * 1024, $memoryInfo->activeFile);
+        $this->assertSame(0, $memoryInfo->nfsUnstable);
+        $this->assertSame(12_458_700 * 1024, $memoryInfo->committedAS);
+        $this->assertSame(0, $memoryInfo->vmallocChunk);
     }
 
     public function testUsesNullWhenOptionalFieldIsMissing(): void
     {
-        $parser = new MemoryInfoParser();
+        $memoryInfoParser = new MemoryInfoParser();
 
-        $memoryInfo = $parser->parse($this->minimalMemoryInformationFixture());
+        $memoryInfo = $memoryInfoParser->parse($this->minimalMemoryInformationFixture());
 
-        self::assertSame(16_384_256 * 1024, $memoryInfo->memTotal);
-        self::assertSame(2_345_678 * 1024, $memoryInfo->cached);
-        self::assertSame(2_097_148 * 1024, $memoryInfo->swapTotal);
-        self::assertNull($memoryInfo->memAvailable);
-        self::assertNull($memoryInfo->activeAnon);
-        self::assertNull($memoryInfo->kReclaimable);
-        self::assertNull($memoryInfo->committedAS);
+        $this->assertSame(16_384_256 * 1024, $memoryInfo->memTotal);
+        $this->assertSame(2_345_678 * 1024, $memoryInfo->cached);
+        $this->assertSame(2_097_148 * 1024, $memoryInfo->swapTotal);
+        $this->assertNull($memoryInfo->memAvailable);
+        $this->assertNull($memoryInfo->activeAnon);
+        $this->assertNull($memoryInfo->kReclaimable);
+        $this->assertNull($memoryInfo->committedAS);
     }
 
     public function testThrowsExceptionWhenRequiredFieldIsMissing(): void
     {
-        $parser = new MemoryInfoParser();
+        $memoryInfoParser = new MemoryInfoParser();
 
         $this->expectException(MemoryInfoReadException::class);
         $this->expectExceptionMessage('Missing memory information field "memTotal"');
 
-        $parser->parse($this->memoryInformationFixture(['MemTotal' => null]));
+        $memoryInfoParser->parse($this->memoryInformationFixture(['MemTotal' => null]));
     }
 
     public function testRejectsMalformedNonEmptyLine(): void
     {
-        $parser = new MemoryInfoParser();
+        $memoryInfoParser = new MemoryInfoParser();
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid memory information line 2');
 
-        $parser->parse("MemTotal: 1 kB\nnot valid\n");
+        $memoryInfoParser->parse("MemTotal: 1 kB\nnot valid\n");
     }
 
     public function testRejectsValueWithoutNumber(): void
     {
-        $parser = new MemoryInfoParser();
+        $memoryInfoParser = new MemoryInfoParser();
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid memory information value on line 1');
 
-        $parser->parse("MemTotal: no value kB\n");
+        $memoryInfoParser->parse("MemTotal: no value kB\n");
     }
 
     /**
@@ -143,5 +157,16 @@ class MemoryInfoParserTest extends TestCase
             'SwapTotal: 2097148 kB',
             'SwapFree: 1048576 kB',
         ]) . "\n";
+    }
+
+    private function linuxProcMemoryInformationFixture(): string
+    {
+        $fixture = file_get_contents(__DIR__ . '/Fixtures/proc-meminfo-linux-6.x.txt');
+
+        if ($fixture === false) {
+            self::fail('Unable to read Linux /proc/meminfo fixture.');
+        }
+
+        return $fixture;
     }
 }

@@ -4,6 +4,16 @@
   "description": "PHP library for reading the current memory status on Linux systems",
   "type": "library",
   "license": "MIT",
+  "keywords": [
+    "linux",
+    "memory",
+    "meminfo",
+    "procfs"
+  ],
+  "support": {
+    "issues": "https://github.com/dev-hvmnd/php-memory-info/issues",
+    "source": "https://github.com/dev-hvmnd/php-memory-info"
+  },
   "autoload": {
     "psr-4": {
       "DevHvmnd\\MemoryInfo\\": "src/"
@@ -24,15 +34,22 @@
     "php": ">=8.2"
   },
   "require-dev": {
+    "phpstan/phpstan": "^2.1",
+    "rector/rector": "^2.1",
     "phpunit/phpunit": "^10.5.62",
     "squizlabs/php_codesniffer": "3.*"
   },
   "scripts": {
     "test": "phpunit",
     "cs": "phpcs --standard=PSR12 src tests",
+    "analyse": "phpstan analyse",
+    "rector": "rector process --dry-run",
+    "rector:fix": "rector process",
     "check": [
       "@test",
-      "@cs"
+      "@cs",
+      "@analyse",
+      "@rector"
     ]
   }
 }

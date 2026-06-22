@@ -23,10 +23,9 @@ composer require dev-hvmnd/memory-info
 <?php
 
 use DevHvmnd\MemoryInfo\MemoryDataReader;
-use DevHvmnd\MemoryInfo\MemoryInfoParser;
 use DevHvmnd\MemoryInfo\MemoryInfoReadException;
 
-$reader = new MemoryDataReader(new MemoryInfoParser());
+$reader = new MemoryDataReader();
 
 try {
     $memoryInfo = $reader->getMemoryInfo();
@@ -118,7 +117,17 @@ Run checks individually:
 ```shell
 composer test
 composer cs
+composer analyse
+composer rector
 ```
+
+Apply Rector changes explicitly:
+
+```shell
+composer rector:fix
+```
+
+Continuous integration runs `composer validate --strict` and `composer check` on PHP 8.2, 8.3, 8.4, and 8.5.
 
 If PHP is not installed locally, use the official PHP Docker image:
 

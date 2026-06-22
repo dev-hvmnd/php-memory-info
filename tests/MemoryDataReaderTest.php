@@ -9,7 +9,7 @@ use DevHvmnd\MemoryInfo\MemoryInfoParser;
 use DevHvmnd\MemoryInfo\MemoryInfoReadException;
 use PHPUnit\Framework\TestCase;
 
-class MemoryDataReaderTest extends TestCase
+final class MemoryDataReaderTest extends TestCase
 {
     /**
      * @var list<string>
@@ -30,15 +30,26 @@ class MemoryDataReaderTest extends TestCase
     public function testBuildsMemoryInfoFromConfiguredFile(): void
     {
         $memoryInfoFile = $this->createTemporaryMemoryInfoFile($this->memoryInformationFixture());
-        $reader = new MemoryDataReader(new MemoryInfoParser(), $memoryInfoFile);
+        $memoryDataReader = new MemoryDataReader(new MemoryInfoParser(), $memoryInfoFile);
 
-        $memoryInfo = $reader->getMemoryInfo();
+        $memoryInfo = $memoryDataReader->getMemoryInfo();
 
-        self::assertSame(1 * 1024, $memoryInfo->memTotal);
-        self::assertSame(9 * 1024, $memoryInfo->activeAnon);
-        self::assertSame(28 * 1024, $memoryInfo->nfsUnstable);
-        self::assertSame(32 * 1024, $memoryInfo->committedAS);
-        self::assertSame(35 * 1024, $memoryInfo->vmallocChunk);
+        $this->assertSame(1024, $memoryInfo->memTotal);
+        $this->assertSame(9 * 1024, $memoryInfo->activeAnon);
+        $this->assertSame(28 * 1024, $memoryInfo->nfsUnstable);
+        $this->assertSame(32 * 1024, $memoryInfo->committedAS);
+        $this->assertSame(35 * 1024, $memoryInfo->vmallocChunk);
+    }
+
+    public function testBuildsMemoryInfoWithDefaultParserFromConfiguredFile(): void
+    {
+        $memoryInfoFile = $this->createTemporaryMemoryInfoFile($this->memoryInformationFixture());
+        $memoryDataReader = new MemoryDataReader(memoryInformationFile: $memoryInfoFile);
+
+        $memoryInfo = $memoryDataReader->getMemoryInfo();
+
+        $this->assertSame(1024, $memoryInfo->memTotal);
+        $this->assertSame(2 * 1024, $memoryInfo->memFree);
     }
 
     public function testThrowsExceptionForUnreadableMemoryInfoFile(): void
@@ -46,14 +57,14 @@ class MemoryDataReaderTest extends TestCase
         $missingMemoryInfoFile = sys_get_temp_dir()
             . DIRECTORY_SEPARATOR
             . 'missing-meminfo-'
-            . str_replace('.', '', uniqid('', true));
+            . str_replace('.', '', uniqid('', more_entropy: true));
 
-        $reader = new MemoryDataReader(new MemoryInfoParser(), $missingMemoryInfoFile);
+        $memoryDataReader = new MemoryDataReader(new MemoryInfoParser(), $missingMemoryInfoFile);
 
         $this->expectException(MemoryInfoReadException::class);
         $this->expectExceptionMessage('is not readable');
 
-        $reader->getMemoryInfo();
+        $memoryDataReader->getMemoryInfo();
     }
 
     private function createTemporaryMemoryInfoFile(string $contents): string

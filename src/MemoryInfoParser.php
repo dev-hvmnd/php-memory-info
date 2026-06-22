@@ -61,51 +61,74 @@ readonly class MemoryInfoParser
     }
 
     /**
-     * @param array<string, int> $memoryInformationData
+     * @param array{
+     *     memTotal: int,
+     *     memFree: int,
+     *     buffers: int,
+     *     cached: int,
+     *     swapTotal: int,
+     *     swapFree: int
+     * }&array<string, int> $memoryInformationData
      */
     private function createMemoryInfo(array $memoryInformationData): MemoryInfo
     {
         return new MemoryInfo(
             $memoryInformationData['memTotal'],
             $memoryInformationData['memFree'],
-            $memoryInformationData['memAvailable'] ?? null,
+            $this->optionalMemoryInformationValue($memoryInformationData, 'memAvailable'),
             $memoryInformationData['buffers'],
             $memoryInformationData['cached'],
-            $memoryInformationData['swapCached'] ?? null,
-            $memoryInformationData['active'] ?? null,
-            $memoryInformationData['inactive'] ?? null,
-            $memoryInformationData['activeAnon'] ?? null,
-            $memoryInformationData['inactiveAnon'] ?? null,
-            $memoryInformationData['activeFile'] ?? null,
-            $memoryInformationData['inactiveFile'] ?? null,
-            $memoryInformationData['unevictable'] ?? null,
-            $memoryInformationData['mlocked'] ?? null,
+            $this->optionalMemoryInformationValue($memoryInformationData, 'swapCached'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'active'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'inactive'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'activeAnon'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'inactiveAnon'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'activeFile'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'inactiveFile'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'unevictable'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'mlocked'),
             $memoryInformationData['swapTotal'],
             $memoryInformationData['swapFree'],
-            $memoryInformationData['dirty'] ?? null,
-            $memoryInformationData['writeback'] ?? null,
-            $memoryInformationData['anonPages'] ?? null,
-            $memoryInformationData['mapped'] ?? null,
-            $memoryInformationData['shmem'] ?? null,
-            $memoryInformationData['kReclaimable'] ?? null,
-            $memoryInformationData['slab'] ?? null,
-            $memoryInformationData['sReclaimable'] ?? null,
-            $memoryInformationData['sUnreclaim'] ?? null,
-            $memoryInformationData['kernelStack'] ?? null,
-            $memoryInformationData['pageTables'] ?? null,
-            $memoryInformationData['nfsUnstable'] ?? null,
-            $memoryInformationData['bounce'] ?? null,
-            $memoryInformationData['writebackTmp'] ?? null,
-            $memoryInformationData['commitLimit'] ?? null,
-            $memoryInformationData['committedAS'] ?? null,
-            $memoryInformationData['vmallocTotal'] ?? null,
-            $memoryInformationData['vmallocUsed'] ?? null,
-            $memoryInformationData['vmallocChunk'] ?? null
+            $this->optionalMemoryInformationValue($memoryInformationData, 'dirty'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'writeback'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'anonPages'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'mapped'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'shmem'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'kReclaimable'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'slab'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'sReclaimable'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'sUnreclaim'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'kernelStack'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'pageTables'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'nfsUnstable'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'bounce'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'writebackTmp'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'commitLimit'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'committedAS'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'vmallocTotal'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'vmallocUsed'),
+            $this->optionalMemoryInformationValue($memoryInformationData, 'vmallocChunk')
         );
     }
 
     /**
      * @param array<string, int> $memoryInformationData
+     */
+    private function optionalMemoryInformationValue(array $memoryInformationData, string $key): ?int
+    {
+        return $memoryInformationData[$key] ?? null;
+    }
+
+    /**
+     * @param array<string, int> $memoryInformationData
+     * @phpstan-assert array{
+     *     memTotal: int,
+     *     memFree: int,
+     *     buffers: int,
+     *     cached: int,
+     *     swapTotal: int,
+     *     swapFree: int
+     * }&array<string, int> $memoryInformationData
      */
     private function assertRequiredFieldsExist(array $memoryInformationData): void
     {

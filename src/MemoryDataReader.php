@@ -8,10 +8,13 @@ readonly class MemoryDataReader
 {
     public const PROC_MEMORY_INFO_FILE = '/proc/meminfo';
 
+    private MemoryInfoParser $memoryInfoParser;
+
     public function __construct(
-        private MemoryInfoParser $memoryInfoParser,
+        ?MemoryInfoParser $memoryInfoParser = null,
         private string $memoryInformationFile = self::PROC_MEMORY_INFO_FILE
     ) {
+        $this->memoryInfoParser = $memoryInfoParser ?? new MemoryInfoParser();
     }
 
     public function getMemoryInfo(): MemoryInfo
@@ -35,15 +38,15 @@ readonly class MemoryDataReader
 
         try {
             $memoryInformation = file_get_contents($this->memoryInformationFile);
-        } catch (MemoryInfoReadException $exception) {
+        } catch (MemoryInfoReadException $memoryInfoReadException) {
             throw new MemoryInfoReadException(
                 sprintf(
                     'Unable to read memory information from "%s": %s',
                     $this->memoryInformationFile,
-                    $exception->getMessage()
+                    $memoryInfoReadException->getMessage()
                 ),
                 0,
-                $exception
+                $memoryInfoReadException
             );
         } finally {
             restore_error_handler();
