@@ -6,7 +6,7 @@ namespace DevHvmnd\MemoryInfo;
 
 use InvalidArgumentException;
 
-class MemoryInfoParser
+readonly class MemoryInfoParser
 {
     /**
      * @var list<string>

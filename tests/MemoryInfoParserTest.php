@@ -17,12 +17,12 @@ class MemoryInfoParserTest extends TestCase
 
         $memoryInfo = $parser->parse($this->memoryInformationFixture());
 
-        self::assertSame(16_384_256 * 1024, $memoryInfo->getMemTotal());
-        self::assertSame(111_111 * 1024, $memoryInfo->getActiveAnon());
-        self::assertSame(444_444 * 1024, $memoryInfo->getInactiveFile());
-        self::assertSame(5 * 1024, $memoryInfo->getNfsUnstable());
-        self::assertSame(9_999_999 * 1024, $memoryInfo->getCommittedAS());
-        self::assertSame(0, $memoryInfo->getVmallocChunk());
+        self::assertSame(16_384_256 * 1024, $memoryInfo->memTotal);
+        self::assertSame(111_111 * 1024, $memoryInfo->activeAnon);
+        self::assertSame(444_444 * 1024, $memoryInfo->inactiveFile);
+        self::assertSame(5 * 1024, $memoryInfo->nfsUnstable);
+        self::assertSame(9_999_999 * 1024, $memoryInfo->committedAS);
+        self::assertSame(0, $memoryInfo->vmallocChunk);
     }
 
     public function testThrowsExceptionWhenRequiredFieldIsMissing(): void

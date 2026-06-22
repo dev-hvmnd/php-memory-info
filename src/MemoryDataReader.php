@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DevHvmnd\MemoryInfo;
 
-class MemoryDataReader
+readonly class MemoryDataReader
 {
     public const PROC_MEMORY_INFO_FILE = '/proc/meminfo';
 

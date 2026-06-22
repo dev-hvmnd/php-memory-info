@@ -34,11 +34,11 @@ class MemoryDataReaderTest extends TestCase
 
         $memoryInfo = $reader->getMemoryInfo();
 
-        self::assertSame(1 * 1024, $memoryInfo->getMemTotal());
-        self::assertSame(9 * 1024, $memoryInfo->getActiveAnon());
-        self::assertSame(28 * 1024, $memoryInfo->getNfsUnstable());
-        self::assertSame(32 * 1024, $memoryInfo->getCommittedAS());
-        self::assertSame(35 * 1024, $memoryInfo->getVmallocChunk());
+        self::assertSame(1 * 1024, $memoryInfo->memTotal);
+        self::assertSame(9 * 1024, $memoryInfo->activeAnon);
+        self::assertSame(28 * 1024, $memoryInfo->nfsUnstable);
+        self::assertSame(32 * 1024, $memoryInfo->committedAS);
+        self::assertSame(35 * 1024, $memoryInfo->vmallocChunk);
     }
 
     public function testThrowsExceptionForUnreadableMemoryInfoFile(): void

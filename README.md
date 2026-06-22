@@ -31,21 +31,64 @@ $reader = new MemoryDataReader(new MemoryInfoParser());
 try {
     $memoryInfo = $reader->getMemoryInfo();
 
-    echo $memoryInfo->getMemTotal();
-    echo $memoryInfo->getMemAvailable();
+    echo $memoryInfo->memTotal;
+    echo $memoryInfo->memAvailable;
 } catch (MemoryInfoReadException $exception) {
     // Handle missing /proc/meminfo, unreadable data, or unsupported field sets.
 }
 ```
 
-`MemoryInfo` exposes typed getters for the supported `/proc/meminfo` fields, for example `getMemTotal()`,
-`getMemAvailable()`, `getSwapTotal()`, and `getCommittedAS()`.
+`MemoryInfo` exposes public readonly properties for the supported `/proc/meminfo` fields, for example `memTotal`,
+`memAvailable`, `swapTotal`, and `committedAS`.
 
 If you already have `/proc/meminfo` contents, parse them directly:
 
 ```php
 $memoryInfo = (new MemoryInfoParser())->parse($contents);
 ```
+
+## Properties
+
+The descriptions below are short summaries of the Linux `/proc/meminfo` fields. Kernel details can vary between Linux
+versions, but all values exposed by this library are returned in bytes.
+
+| Property | `/proc/meminfo` key | Description |
+| --- | --- | --- |
+| `memTotal` | `MemTotal` | Total usable physical RAM. |
+| `memFree` | `MemFree` | Physical RAM that is currently unused. |
+| `memAvailable` | `MemAvailable` | Estimate of memory available for new applications without swapping. |
+| `buffers` | `Buffers` | Memory used for temporary block device buffers. |
+| `cached` | `Cached` | Memory used for the page cache, excluding swap cache. |
+| `swapCached` | `SwapCached` | Swap-backed memory that is also still cached in RAM. |
+| `active` | `Active` | Recently used memory that is less likely to be reclaimed. |
+| `inactive` | `Inactive` | Less recently used memory that is more likely to be reclaimed. |
+| `activeAnon` | `Active(anon)` | Active anonymous memory, not backed by files. |
+| `inactiveAnon` | `Inactive(anon)` | Inactive anonymous memory, not backed by files. |
+| `activeFile` | `Active(file)` | Active file-backed memory. |
+| `inactiveFile` | `Inactive(file)` | Inactive file-backed memory. |
+| `unevictable` | `Unevictable` | Memory that cannot be reclaimed by the kernel. |
+| `mlocked` | `Mlocked` | Memory locked into RAM with mlock. |
+| `swapTotal` | `SwapTotal` | Total configured swap space. |
+| `swapFree` | `SwapFree` | Swap space that is currently unused. |
+| `dirty` | `Dirty` | Memory waiting to be written back to disk. |
+| `writeback` | `Writeback` | Memory currently being written back to disk. |
+| `anonPages` | `AnonPages` | Non-file-backed pages mapped into user space. |
+| `mapped` | `Mapped` | Files mapped into memory by processes. |
+| `shmem` | `Shmem` | Shared memory, including tmpfs memory. |
+| `kReclaimable` | `KReclaimable` | Kernel allocations that the kernel can reclaim. |
+| `slab` | `Slab` | Kernel memory used for internal data structure caches. |
+| `sReclaimable` | `SReclaimable` | Reclaimable part of slab memory. |
+| `sUnreclaim` | `SUnreclaim` | Non-reclaimable part of slab memory. |
+| `kernelStack` | `KernelStack` | Memory used for kernel stacks. |
+| `pageTables` | `PageTables` | Memory used for page tables. |
+| `nfsUnstable` | `NFS_Unstable` | NFS pages sent to the server but not yet committed. |
+| `bounce` | `Bounce` | Memory used for block device bounce buffers. |
+| `writebackTmp` | `WritebackTmp` | Temporary memory used for FUSE writeback buffers. |
+| `commitLimit` | `CommitLimit` | Total memory that can be committed under the current overcommit policy. |
+| `committedAS` | `Committed_AS` | Total memory currently committed to processes. |
+| `vmallocTotal` | `VmallocTotal` | Total virtual address space available for vmalloc. |
+| `vmallocUsed` | `VmallocUsed` | Virtual address space currently used by vmalloc. |
+| `vmallocChunk` | `VmallocChunk` | Largest contiguous vmalloc area, often reported as `0` on newer kernels. |
 
 ## Behavior
 
