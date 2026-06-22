@@ -1,17 +1,91 @@
-PHP Memory Info
-=============================
+# PHP Memory Info
 
-A PHP library for reading the current memory status on Linux systems.
+PHP Memory Info is a small PHP library for reading the current memory status on Linux systems.
 
-This package provides the ability to read RAM usage and other memory information from the file `/proc/meminfo`.
+It reads `/proc/meminfo`, normalizes the kernel field names, and returns the values as integers in bytes.
 
-The file `/proc/meminfo` within the pseudo file system `/proc` provides a report on the memory usage on the system.
+## Requirements
 
+- Linux with a readable `/proc/meminfo`
+- PHP 8.2 or newer
+- Composer
 
-## Coding standard
-
-To ensure that the code remains clean and consistent, [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer) is used. The standard PSR12 is used
+## Installation
 
 ```shell
-./vendor/bin/phpcs --standard="PSR12" /app/src
+composer require dev-hvmnd/memory-info
 ```
+
+## Quick Start
+
+```php
+<?php
+
+use DevHvmnd\MemoryInfo\MemoryDataReader;
+use DevHvmnd\MemoryInfo\MemoryInfoParser;
+use DevHvmnd\MemoryInfo\MemoryInfoReadException;
+
+$reader = new MemoryDataReader(new MemoryInfoParser());
+
+try {
+    $memoryInfo = $reader->getMemoryInfo();
+
+    echo $memoryInfo->getMemTotal();
+    echo $memoryInfo->getMemAvailable();
+} catch (MemoryInfoReadException $exception) {
+    // Handle missing /proc/meminfo, unreadable data, or unsupported field sets.
+}
+```
+
+`MemoryInfo` exposes typed getters for the supported `/proc/meminfo` fields, for example `getMemTotal()`,
+`getMemAvailable()`, `getSwapTotal()`, and `getCommittedAS()`.
+
+## Behavior
+
+- Values from `/proc/meminfo` are converted from `kB` to bytes.
+- Additional kernel fields are accepted by the parser but ignored by `MemoryInfo`.
+- Missing fields required by `MemoryInfo` raise `MemoryInfoReadException`.
+- Invalid non-empty lines or values without numbers raise `InvalidArgumentException` from the parser.
+- For tests or fixtures, pass a custom file path as the second `MemoryDataReader` constructor argument.
+
+## Development
+
+Install dependencies:
+
+```shell
+composer install
+```
+
+Run the full check suite:
+
+```shell
+composer check
+```
+
+Run checks individually:
+
+```shell
+composer test
+composer cs
+```
+
+If PHP is not installed locally, use the official PHP Docker image:
+
+```shell
+docker run --rm -v "$PWD":/app -w /app php:8.2-cli sh -lc '
+  export DEBIAN_FRONTEND=noninteractive &&
+  apt-get update &&
+  apt-get install -y unzip &&
+  php -r "copy(\"https://getcomposer.org/installer\", \"/tmp/composer-setup.php\");" &&
+  php /tmp/composer-setup.php --install-dir=/tmp --filename=composer &&
+  /tmp/composer install &&
+  /tmp/composer validate --strict &&
+  /tmp/composer check
+'
+```
+
+The repository keeps `composer.lock` committed so development tooling is reproducible.
+
+## License
+
+MIT
