@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DevHvmnd\MemoryInfo\Tests;
 
 use DevHvmnd\MemoryInfo\MemoryInfoParser;
+use DevHvmnd\MemoryInfo\MemoryInfoReadException;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
@@ -14,15 +15,24 @@ class MemoryInfoParserTest extends TestCase
     {
         $parser = new MemoryInfoParser();
 
-        $memoryInformationData = $parser->parse($this->memoryInformationFixture());
+        $memoryInfo = $parser->parse($this->memoryInformationFixture());
 
-        self::assertSame(16_384_256 * 1024, $memoryInformationData['memTotal']);
-        self::assertSame(111_111 * 1024, $memoryInformationData['activeAnon']);
-        self::assertSame(444_444 * 1024, $memoryInformationData['inactiveFile']);
-        self::assertSame(5 * 1024, $memoryInformationData['nfsUnstable']);
-        self::assertSame(9_999_999 * 1024, $memoryInformationData['committedAS']);
-        self::assertSame(0, $memoryInformationData['hugePagesTotal']);
-        self::assertSame(12_345 * 1024, $memoryInformationData['directMap4k']);
+        self::assertSame(16_384_256 * 1024, $memoryInfo->getMemTotal());
+        self::assertSame(111_111 * 1024, $memoryInfo->getActiveAnon());
+        self::assertSame(444_444 * 1024, $memoryInfo->getInactiveFile());
+        self::assertSame(5 * 1024, $memoryInfo->getNfsUnstable());
+        self::assertSame(9_999_999 * 1024, $memoryInfo->getCommittedAS());
+        self::assertSame(0, $memoryInfo->getVmallocChunk());
+    }
+
+    public function testThrowsExceptionWhenRequiredFieldIsMissing(): void
+    {
+        $parser = new MemoryInfoParser();
+
+        $this->expectException(MemoryInfoReadException::class);
+        $this->expectExceptionMessage('Missing memory information field "memAvailable"');
+
+        $parser->parse($this->memoryInformationFixture(['MemAvailable' => null]));
     }
 
     public function testRejectsMalformedNonEmptyLine(): void
@@ -45,47 +55,66 @@ class MemoryInfoParserTest extends TestCase
         $parser->parse("MemTotal: no value kB\n");
     }
 
-    private function memoryInformationFixture(): string
+    /**
+     * @param array<string, int|null> $overrides
+     */
+    private function memoryInformationFixture(array $overrides = []): string
     {
-        return <<<'MEMORY_INFORMATION'
-MemTotal:       16384256 kB
-MemFree:         123456 kB
-MemAvailable:   789012 kB
-Buffers:          34567 kB
-Cached:         2345678 kB
-SwapCached:          12 kB
-Active:         3456789 kB
-Inactive:       4567890 kB
-Active(anon):    111111 kB
-Inactive(anon):  222222 kB
-Active(file):    333333 kB
-Inactive(file):  444444 kB
-Unevictable:         55 kB
-Mlocked:             44 kB
-SwapTotal:      2097148 kB
-SwapFree:       1048576 kB
-Dirty:             1234 kB
-Writeback:          234 kB
-AnonPages:       555555 kB
-Mapped:           66666 kB
-Shmem:            77777 kB
-KReclaimable:     88888 kB
-Slab:             99999 kB
-SReclaimable:     11111 kB
-SUnreclaim:       22222 kB
-KernelStack:       3333 kB
-PageTables:        4444 kB
-NFS_Unstable:         5 kB
-Bounce:               6 kB
-WritebackTmp:         7 kB
-CommitLimit:    8888888 kB
-Committed_AS:   9999999 kB
-VmallocTotal:   1234567 kB
-VmallocUsed:        123 kB
-VmallocChunk:         0 kB
-HugePages_Total:      0
-DirectMap4k:      12345 kB
+        $fields = [
+            'MemTotal' => 16_384_256,
+            'MemFree' => 123_456,
+            'MemAvailable' => 789_012,
+            'Buffers' => 34_567,
+            'Cached' => 2_345_678,
+            'SwapCached' => 12,
+            'Active' => 3_456_789,
+            'Inactive' => 4_567_890,
+            'Active(anon)' => 111_111,
+            'Inactive(anon)' => 222_222,
+            'Active(file)' => 333_333,
+            'Inactive(file)' => 444_444,
+            'Unevictable' => 55,
+            'Mlocked' => 44,
+            'SwapTotal' => 2_097_148,
+            'SwapFree' => 1_048_576,
+            'Dirty' => 1_234,
+            'Writeback' => 234,
+            'AnonPages' => 555_555,
+            'Mapped' => 66_666,
+            'Shmem' => 77_777,
+            'KReclaimable' => 88_888,
+            'Slab' => 99_999,
+            'SReclaimable' => 11_111,
+            'SUnreclaim' => 22_222,
+            'KernelStack' => 3_333,
+            'PageTables' => 4_444,
+            'NFS_Unstable' => 5,
+            'Bounce' => 6,
+            'WritebackTmp' => 7,
+            'CommitLimit' => 8_888_888,
+            'Committed_AS' => 9_999_999,
+            'VmallocTotal' => 1_234_567,
+            'VmallocUsed' => 123,
+            'VmallocChunk' => 0,
+            'HugePages_Total' => 0,
+            'DirectMap4k' => 12_345,
+        ];
 
-MEMORY_INFORMATION;
+        foreach ($overrides as $field => $value) {
+            if ($value === null) {
+                unset($fields[$field]);
+                continue;
+            }
+
+            $fields[$field] = $value;
+        }
+
+        $lines = [];
+
+        foreach ($fields as $field => $value) {
+            $lines[] = sprintf('%s: %d kB', $field, $value);
+        }
+
+        return implode("\n", $lines) . "\n";
     }
 }

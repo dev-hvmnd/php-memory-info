@@ -2,7 +2,8 @@
 
 PHP Memory Info is a small PHP library for reading the current memory status on Linux systems.
 
-It reads `/proc/meminfo`, normalizes the kernel field names, and returns the values as integers in bytes.
+It reads `/proc/meminfo`, normalizes the kernel field names, and returns a typed `MemoryInfo` object with
+integer values in bytes.
 
 ## Requirements
 
@@ -39,6 +40,12 @@ try {
 
 `MemoryInfo` exposes typed getters for the supported `/proc/meminfo` fields, for example `getMemTotal()`,
 `getMemAvailable()`, `getSwapTotal()`, and `getCommittedAS()`.
+
+If you already have `/proc/meminfo` contents, parse them directly:
+
+```php
+$memoryInfo = (new MemoryInfoParser())->parse($contents);
+```
 
 ## Behavior
 

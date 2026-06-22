@@ -56,19 +56,6 @@ class MemoryDataReaderTest extends TestCase
         $reader->getMemoryInfo();
     }
 
-    public function testThrowsExceptionWhenRequiredFieldIsMissing(): void
-    {
-        $memoryInfoFile = $this->createTemporaryMemoryInfoFile(
-            $this->memoryInformationFixture(['MemAvailable' => null])
-        );
-        $reader = new MemoryDataReader(new MemoryInfoParser(), $memoryInfoFile);
-
-        $this->expectException(MemoryInfoReadException::class);
-        $this->expectExceptionMessage('Missing memory information field "memAvailable"');
-
-        $reader->getMemoryInfo();
-    }
-
     private function createTemporaryMemoryInfoFile(string $contents): string
     {
         $temporaryFile = tempnam(sys_get_temp_dir(), 'meminfo_');
@@ -88,10 +75,7 @@ class MemoryDataReaderTest extends TestCase
         return $temporaryFile;
     }
 
-    /**
-     * @param array<string, int|null> $overrides
-     */
-    private function memoryInformationFixture(array $overrides = []): string
+    private function memoryInformationFixture(): string
     {
         $fields = [
             'MemTotal' => 1,
@@ -130,15 +114,6 @@ class MemoryDataReaderTest extends TestCase
             'VmallocUsed' => 34,
             'VmallocChunk' => 35,
         ];
-
-        foreach ($overrides as $field => $value) {
-            if ($value === null) {
-                unset($fields[$field]);
-                continue;
-            }
-
-            $fields[$field] = $value;
-        }
 
         $lines = [];
 

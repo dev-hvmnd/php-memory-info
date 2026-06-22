@@ -9,9 +9,59 @@ use InvalidArgumentException;
 class MemoryInfoParser
 {
     /**
+     * @var list<string>
+     */
+    private const REQUIRED_FIELDS = [
+        'memTotal',
+        'memFree',
+        'memAvailable',
+        'buffers',
+        'cached',
+        'swapCached',
+        'active',
+        'inactive',
+        'activeAnon',
+        'inactiveAnon',
+        'activeFile',
+        'inactiveFile',
+        'unevictable',
+        'mlocked',
+        'swapTotal',
+        'swapFree',
+        'dirty',
+        'writeback',
+        'anonPages',
+        'mapped',
+        'shmem',
+        'kReclaimable',
+        'slab',
+        'sReclaimable',
+        'sUnreclaim',
+        'kernelStack',
+        'pageTables',
+        'nfsUnstable',
+        'bounce',
+        'writebackTmp',
+        'commitLimit',
+        'committedAS',
+        'vmallocTotal',
+        'vmallocUsed',
+        'vmallocChunk',
+    ];
+
+    public function parse(string $memoryInformation): MemoryInfo
+    {
+        $memoryInformationData = $this->parseMemoryInformationData($memoryInformation);
+
+        $this->assertRequiredFieldsExist($memoryInformationData);
+
+        return $this->createMemoryInfo($memoryInformationData);
+    }
+
+    /**
      * @return array<string, int>
      */
-    public function parse(string $memoryInformation): array
+    private function parseMemoryInformationData(string $memoryInformation): array
     {
         $memoryInformationData = [];
 
@@ -37,6 +87,64 @@ class MemoryInfoParser
         }
 
         return $memoryInformationData;
+    }
+
+    /**
+     * @param array<string, int> $memoryInformationData
+     */
+    private function createMemoryInfo(array $memoryInformationData): MemoryInfo
+    {
+        return new MemoryInfo(
+            $memoryInformationData['memTotal'],
+            $memoryInformationData['memFree'],
+            $memoryInformationData['memAvailable'],
+            $memoryInformationData['buffers'],
+            $memoryInformationData['cached'],
+            $memoryInformationData['swapCached'],
+            $memoryInformationData['active'],
+            $memoryInformationData['inactive'],
+            $memoryInformationData['activeAnon'],
+            $memoryInformationData['inactiveAnon'],
+            $memoryInformationData['activeFile'],
+            $memoryInformationData['inactiveFile'],
+            $memoryInformationData['unevictable'],
+            $memoryInformationData['mlocked'],
+            $memoryInformationData['swapTotal'],
+            $memoryInformationData['swapFree'],
+            $memoryInformationData['dirty'],
+            $memoryInformationData['writeback'],
+            $memoryInformationData['anonPages'],
+            $memoryInformationData['mapped'],
+            $memoryInformationData['shmem'],
+            $memoryInformationData['kReclaimable'],
+            $memoryInformationData['slab'],
+            $memoryInformationData['sReclaimable'],
+            $memoryInformationData['sUnreclaim'],
+            $memoryInformationData['kernelStack'],
+            $memoryInformationData['pageTables'],
+            $memoryInformationData['nfsUnstable'],
+            $memoryInformationData['bounce'],
+            $memoryInformationData['writebackTmp'],
+            $memoryInformationData['commitLimit'],
+            $memoryInformationData['committedAS'],
+            $memoryInformationData['vmallocTotal'],
+            $memoryInformationData['vmallocUsed'],
+            $memoryInformationData['vmallocChunk']
+        );
+    }
+
+    /**
+     * @param array<string, int> $memoryInformationData
+     */
+    private function assertRequiredFieldsExist(array $memoryInformationData): void
+    {
+        foreach (self::REQUIRED_FIELDS as $requiredField) {
+            if (!array_key_exists($requiredField, $memoryInformationData)) {
+                throw new MemoryInfoReadException(
+                    sprintf('Missing memory information field "%s".', $requiredField)
+                );
+            }
+        }
     }
 
     private function canonicalizeValueKey(string $key): string
