@@ -25,14 +25,29 @@ class MemoryInfoParserTest extends TestCase
         self::assertSame(0, $memoryInfo->vmallocChunk);
     }
 
+    public function testUsesNullWhenOptionalFieldIsMissing(): void
+    {
+        $parser = new MemoryInfoParser();
+
+        $memoryInfo = $parser->parse($this->minimalMemoryInformationFixture());
+
+        self::assertSame(16_384_256 * 1024, $memoryInfo->memTotal);
+        self::assertSame(2_345_678 * 1024, $memoryInfo->cached);
+        self::assertSame(2_097_148 * 1024, $memoryInfo->swapTotal);
+        self::assertNull($memoryInfo->memAvailable);
+        self::assertNull($memoryInfo->activeAnon);
+        self::assertNull($memoryInfo->kReclaimable);
+        self::assertNull($memoryInfo->committedAS);
+    }
+
     public function testThrowsExceptionWhenRequiredFieldIsMissing(): void
     {
         $parser = new MemoryInfoParser();
 
         $this->expectException(MemoryInfoReadException::class);
-        $this->expectExceptionMessage('Missing memory information field "memAvailable"');
+        $this->expectExceptionMessage('Missing memory information field "memTotal"');
 
-        $parser->parse($this->memoryInformationFixture(['MemAvailable' => null]));
+        $parser->parse($this->memoryInformationFixture(['MemTotal' => null]));
     }
 
     public function testRejectsMalformedNonEmptyLine(): void
@@ -116,5 +131,17 @@ class MemoryInfoParserTest extends TestCase
         }
 
         return implode("\n", $lines) . "\n";
+    }
+
+    private function minimalMemoryInformationFixture(): string
+    {
+        return implode("\n", [
+            'MemTotal: 16384256 kB',
+            'MemFree: 123456 kB',
+            'Buffers: 34567 kB',
+            'Cached: 2345678 kB',
+            'SwapTotal: 2097148 kB',
+            'SwapFree: 1048576 kB',
+        ]) . "\n";
     }
 }
